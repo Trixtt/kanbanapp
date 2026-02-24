@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ThemeToggle } from './ThemeToggle'; // Import tombol yang kita buat tadi
+import { UserButton, SignInButton, useUser } from "@clerk/nextjs"; 
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isSignedIn, isLoaded } = useUser(); // Tambahkan ini
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,17 +61,27 @@ export const Navbar = () => {
             Dashboard
           </Link>
 
-          {/* Action Button */}
-          <Link 
-            href="/dashboard" 
-            className={`hidden md:block px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 ${
-              isScrolled 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700' 
-                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700'
-            }`}
-          >
-            Mulai Gratis
-          </Link>
+          {/* Bagian Dark Mode & Auth yang ditambahkan/diupdate */}
+          <div className="flex items-center gap-4">
+
+            {!isLoaded ? (
+              <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-full"></div>
+            ) : isSignedIn ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <SignInButton mode="modal">
+                <button 
+                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 ${
+                    isScrolled 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700' 
+                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  Masuk
+                </button>
+              </SignInButton>
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -1,15 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-// Langkah 4: Ganti import hook lama dengan useTaskContext
 import { useTaskContext } from '@/lib/TaskContext'; 
 import { TaskCard } from '@/components/shared/TaskCard';
 import { Status } from '@/types';
+import { ShareModal } from '@/components/shared/ShareModal';
+import { useUser, useClerk } from "@clerk/nextjs"; // Impor Clerk hooks
 
 export default function Dashboard() {
-  // Langkah 4: Ambil fungsi dari Context Pusat, bukan dari hook lokal lagi
   const { tasks, addTask, updateStatus, deleteTask } = useTaskContext();
   const [input, setInput] = useState('');
+  
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const { isSignedIn, isLoaded } = useUser(); // Cek status login
+  const { openSignIn } = useClerk(); // Fungsi untuk memicu modal login
+  
+  const boardId = "id-board-anda"; 
+
+  // Fungsi baru untuk menangani klik tombol bagikan
+  const handleShareClick = () => {
+    if (!isLoaded) return; // Tunggu Clerk siap
+
+    if (!isSignedIn) {
+      // Jika belum login, buka modal login Clerk
+      openSignIn({
+        afterSignInUrl: window.location.href, // Kembali ke sini setelah login
+      });
+    } else {
+      // Jika sudah login, buka modal share
+      setIsShareOpen(true);
+    }
+  };
 
   const columns: { label: string; value: Status; color: string }[] = [
     { label: 'Akan Dikerjakan', value: 'To Do', color: 'bg-slate-500' },
@@ -34,20 +55,30 @@ export default function Dashboard() {
             <p className="text-slate-500 font-medium">Monitoring tugas tim beranggotakan 5 orang.</p>
           </div>
 
-          <form onSubmit={handleAddTask} className="flex gap-2">
-            <input 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ada tugas apa hari ini?"
-              className="px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-100 outline-none w-full md:w-80 transition-all text-slate-700"
-            />
+          <div className="flex items-center gap-3">
+            {/* Update onClick untuk menggunakan fungsi handleShareClick */}
             <button 
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
+              onClick={handleShareClick}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
             >
-              Tambah
+              <span>🔗</span> Bagikan
             </button>
-          </form>
+
+            <form onSubmit={handleAddTask} className="flex gap-2">
+              <input 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ada tugas apa hari ini?"
+                className="px-5 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-4 focus:ring-blue-100 outline-none w-full md:w-80 transition-all text-slate-700"
+              />
+              <button 
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
+              >
+                Tambah
+              </button>
+            </form>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -80,6 +111,12 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      <ShareModal 
+        isOpen={isShareOpen} 
+        onClose={() => setIsShareOpen(false)} 
+        boardId={boardId} 
+      />
     </div>
   );
 }
