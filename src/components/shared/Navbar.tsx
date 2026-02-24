@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle'; // Import tombol yang kita buat tadi
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -19,8 +20,8 @@ export const Navbar = () => {
     <nav 
       className={`sticky top-0 z-50 w-full transition-all duration-500 ${
         isScrolled 
-          ? 'border-b border-slate-200 bg-white/90 backdrop-blur-md py-3 shadow-sm' 
-          : 'border-b border-transparent bg-white py-6'
+          ? 'border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md py-3 shadow-sm' 
+          : 'border-b border-transparent bg-white dark:bg-slate-950 py-6'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -30,18 +31,20 @@ export const Navbar = () => {
             K
           </div>
           <span className={`text-xl font-bold tracking-tight transition-colors duration-300 ${
-            isScrolled ? 'text-slate-900' : 'text-slate-800'
+            isScrolled ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-slate-100'
           }`}>
             KanbanApp
           </span>
         </div>
 
         {/* Links Section */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 md:gap-8">
           <Link 
             href="/" 
             className={`text-sm font-bold transition-colors duration-300 ${
-              isScrolled ? 'text-slate-600 hover:text-blue-600' : 'text-slate-700 hover:text-blue-600'
+              isScrolled 
+                ? 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400' 
+                : 'text-slate-700 dark:text-slate-300 hover:text-blue-600'
             }`}
           >
             Beranda
@@ -49,19 +52,21 @@ export const Navbar = () => {
           <Link 
             href="/dashboard" 
             className={`text-sm font-bold transition-colors duration-300 ${
-              isScrolled ? 'text-slate-600 hover:text-blue-600' : 'text-slate-700 hover:text-blue-600'
+              isScrolled 
+                ? 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400' 
+                : 'text-slate-700 dark:text-slate-300 hover:text-blue-600'
             }`}
           >
             Dashboard
           </Link>
-          
+
           {/* Action Button */}
           <Link 
             href="/dashboard" 
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 ${
+            className={`hidden md:block px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 active:scale-95 ${
               isScrolled 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700' 
-                : 'bg-white text-slate-900 border border-slate-200 shadow-sm hover:bg-slate-50'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700' 
+                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             Mulai Gratis

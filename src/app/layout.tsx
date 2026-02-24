@@ -1,5 +1,6 @@
 // src/app/layout.tsx
-import { TaskProvider } from "@/lib/TaskContext"; // 1. Impor penyedia datanya
+import { TaskProvider } from "@/lib/TaskContext"; 
+import { ThemeProvider } from "@/components/ThemeProvider"; // Pastikan sudah buat file ini
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import "./globals.css";
@@ -10,21 +11,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // Tambahkan suppressHydrationWarning agar tidak error saat perpindahan tema
+    <html lang="en" suppressHydrationWarning>
       <body>
-        {/* --- AWAL BUNGKUSAN --- */}
-        <TaskProvider>
-          
-          <Navbar />
-          
-          <main className="min-h-screen">
-            {children} {/* Ini adalah halaman (Beranda/Dashboard) yang kamu buka */}
-          </main>
-          
-          <Footer />
+        {/* ThemeProvider harus membungkus semuanya agar class "dark" bisa masuk ke tag HTML/Body */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TaskProvider>
+            
+            <Navbar />
+            
+            <main className="min-h-screen">
+              {children}
+            </main>
+            
+            <Footer />
 
-        </TaskProvider>
-        {/* --- AKHIR BUNGKUSAN --- */}
+          </TaskProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
