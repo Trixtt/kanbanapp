@@ -52,7 +52,7 @@ export default function Dashboard() {
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">Project Board</h1>
-            <p className="text-slate-500 font-medium">Monitoring tugas tim beranggotakan 5 orang.</p>
+            <p className="text-slate-500 font-medium">Monitoring tugas tim.</p>
           </div>
 
           <div className="flex items-center gap-3">
