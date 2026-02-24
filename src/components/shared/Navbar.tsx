@@ -32,7 +32,7 @@ export const Navbar = () => {
           <span className={`text-xl font-bold tracking-tight transition-colors duration-300 ${
             isScrolled ? 'text-slate-900' : 'text-slate-800'
           }`}>
-            KanbanPro
+            KanbanApp
           </span>
         </div>
 
