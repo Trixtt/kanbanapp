@@ -11,6 +11,7 @@ interface TaskContextType {
   updateStatus: (id: string, status: Status) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   isLoading: boolean;
+  fetchTasks: (isSharedPage?: boolean) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -21,30 +22,41 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoaded: userLoaded } = useUser();
   const { openSignIn } = useClerk();
 
-  // 1. Ambil data dari Supabase
-  const fetchTasks = async () => {
+  const fetchTasks = async (isSharedPage = false) => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false }); // Terbaru di atas
+    
+    let query = supabase.from('tasks').select('*');
 
-    if (error) {
-      console.error("Error fetching tasks:", error.message);
-    } else {
+    if (!isSharedPage) {
+      if (!user) {
+        setTasks([]);
+        setIsLoading(false);
+        return;
+      }
+      query = query.eq('user_id', user.id);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (!error) {
       setTasks(data || []);
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (userLoaded && window.location.pathname.includes('/dashboard')) {
+      fetchTasks(false);
+    }
+  }, [user, userLoaded]);
 
-  // 2. Tambah tugas
+  useEffect(() => {
+    if (userLoaded) {
+      fetchTasks();
+    }
+  }, [user, userLoaded]);
+
   const addTask = async (title: string) => {
-    // Jika user klik tambah tapi belum login, suruh login dulu
-    if (!userLoaded) return;
     if (!user) {
       openSignIn();
       return;
@@ -62,18 +74,19 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (error) {
       console.error("Error adding task:", error.message);
-      alert("Gagal menambah tugas. Cek koneksi atau database.");
     } else if (data) {
       setTasks((prev) => [data, ...prev]);
     }
   };
 
-  // 3. Update status
   const updateStatus = async (id: string, status: Status) => {
+    if (!user) return;
+
     const { error } = await supabase
       .from('tasks')
       .update({ status })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error("Error updating task:", error.message);
@@ -82,12 +95,14 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 4. Hapus tugas
   const deleteTask = async (id: string) => {
+    if (!user) return;
+
     const { error } = await supabase
       .from('tasks')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error("Error deleting task:", error.message);
@@ -97,7 +112,7 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask, updateStatus, deleteTask, isLoading }}>
+    <TaskContext.Provider value={{ tasks, addTask, updateStatus, deleteTask, isLoading, fetchTasks }}>
       {children}
     </TaskContext.Provider>
   );

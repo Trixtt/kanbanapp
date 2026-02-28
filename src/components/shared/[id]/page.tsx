@@ -4,16 +4,33 @@ import { useTaskContext } from '@/lib/TaskContext';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Status } from '@/types';
-import { Globe, Lock, Eye } from 'lucide-react';
+import { Globe, Lock, Eye, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from 'react'; // Tambahkan useEffect di sini
 
 export default function SharePage() {
-  const { tasks, isLoading } = useTaskContext();
+  // Ambil fetchTasks dari context untuk memicu pengambilan data publik
+  const { tasks, isLoading, updateStatus, deleteTask, fetchTasks } = useTaskContext();
   const params = useParams();
   const searchParams = useSearchParams();
+  const [copied, setCopied] = useState(false);
   
-  // Ambil mode dari URL: ?mode=view atau ?mode=edit
   const mode = searchParams.get('mode') || 'view';
   const isReadOnly = mode === 'view';
+
+  // --- LANGKAH PENTING ---
+  // Memanggil data secara publik saat halaman share dibuka
+  useEffect(() => {
+    if (fetchTasks) {
+      fetchTasks(true); // Flag 'true' menandakan ini adalah Shared Page
+    }
+  }, []); 
+
+  // Fungsi untuk menyalin link ke clipboard
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const columns: { label: string; value: Status; color: string }[] = [
     { label: 'To Do', value: 'To Do', color: 'bg-slate-400' },
@@ -32,7 +49,7 @@ export default function SharePage() {
   return (
     <div className="min-h-screen bg-[#fcfcfd] pb-20">
       {/* Banner Notifikasi Mode */}
-      <div className={`w-full py-2 px-4 text-center text-xs font-bold uppercase tracking-widest ${isReadOnly ? 'bg-amber-50 text-amber-700 border-b border-amber-100' : 'bg-blue-50 text-blue-700 border-b border-blue-100'}`}>
+      <div className={`w-full py-2 px-4 text-center text-xs font-bold uppercase tracking-widest transition-colors duration-500 ${isReadOnly ? 'bg-amber-50 text-amber-700 border-b border-amber-100' : 'bg-blue-50 text-blue-700 border-b border-blue-100'}`}>
         <div className="flex items-center justify-center gap-2">
           {isReadOnly ? <Eye size={14} /> : <Lock size={14} />}
           {isReadOnly ? 'Mode Pratinjau: Hanya Lihat' : 'Mode Editor Aktif'}
@@ -56,11 +73,20 @@ export default function SharePage() {
             </p>
           </div>
 
-          <div className="flex gap-3">
-             <div className="px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-semibold text-slate-600 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live Update
-             </div>
+          <div className="flex items-center gap-3">
+            {/* Tombol Copy Link */}
+            <button 
+              onClick={copyToClipboard}
+              className="px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 active:scale-95"
+            >
+              {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+              {copied ? 'Tersalin!' : 'Salin Link'}
+            </button>
+
+            <div className="px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-semibold text-slate-600 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Update
+            </div>
           </div>
         </header>
 
@@ -76,18 +102,22 @@ export default function SharePage() {
               </div>
               
               <div className="flex flex-col gap-4 p-4 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 min-h-[500px] backdrop-blur-sm">
-                {tasks
-                  .filter(t => t.status === col.value)
-                  .map(task => (
-                    <TaskCard 
-                      key={task.id} 
-                      task={task} 
-                      // Matikan fungsi update/delete jika isReadOnly
-                      onUpdate={isReadOnly ? undefined : () => {}} 
-                      onDelete={isReadOnly ? undefined : () => {}} 
-                    />
-                  ))
-                }
+                {tasks.filter(t => t.status === col.value).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 opacity-20 border-2 border-dashed border-slate-300 rounded-[2rem]">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Kosong</span>
+                  </div>
+                ) : (
+                  tasks
+                    .filter(t => t.status === col.value)
+                    .map(task => (
+                      <TaskCard 
+                        key={task.id} 
+                        task={task} 
+                        onUpdate={isReadOnly ? undefined : (id, status) => updateStatus(id, status)} 
+                        onDelete={isReadOnly ? undefined : (id) => deleteTask(id)} 
+                      />
+                    ))
+                )}
               </div>
             </div>
           ))}
