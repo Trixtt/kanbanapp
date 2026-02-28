@@ -1,15 +1,17 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher(['/', '/dashboard', '/share(.*)']);
+// 1. Definisikan rute yang boleh dibuka tanpa login
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/share/(.*)', // Ini kunci agar link share Akun A bisa dibuka Akun B
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+]);
 
-export default clerkMiddleware(async (auth, req) => {
-  // Gunakan await di sini agar tidak merah
-  const authObject = await auth();
-
-  if (!isPublicRoute(req)) {
-    if (!authObject.userId) {
-      return authObject.redirectToSignIn();
-    }
+export default clerkMiddleware(async (auth, request) => {
+  // 2. Jika rute TIDAK publik, maka lindungi dengan login
+  if (!isPublicRoute(request)) {
+    await auth.protect();
   }
 });
 

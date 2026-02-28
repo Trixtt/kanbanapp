@@ -9,19 +9,24 @@ import { useState, useEffect } from 'react';
 
 export default function SharePage() {
   const { tasks, isLoading, updateStatus, deleteTask, fetchTasks } = useTaskContext();
-  const params = useParams(); // Mengambil [id] dari folder [id]
+  const params = useParams(); 
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
   
   const mode = searchParams.get('mode') || 'view';
   const isReadOnly = mode === 'view';
 
-  // --- LOGIKA UTAMA: Ambil data berdasarkan ID di URL ---
+  // --- IMPLEMENTASI NOMOR 4: REVISI LOGIKA FETCH ---
   useEffect(() => {
-    if (params.id) {
-      fetchTasks(true, params.id as string);
-    }
-  }, [params.id]); 
+    const loadSharedData = async () => {
+      // Memastikan ID ada di URL dan fungsi fetchTasks sudah siap dari Context
+      if (params.id && fetchTasks) {
+        // Memanggil data secara spesifik berdasarkan ID Pemilik di URL
+        await fetchTasks(true, params.id as string);
+      }
+    };
+    loadSharedData();
+  }, [params.id, fetchTasks]); // Dependency ini menjaga data tetap sinkron jika ID berubah
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -77,11 +82,6 @@ export default function SharePage() {
               {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
               {copied ? 'Tersalin!' : 'Salin Link'}
             </button>
-
-            <div className="px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-semibold text-slate-600 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Live Update
-            </div>
           </div>
         </header>
 
@@ -108,6 +108,7 @@ export default function SharePage() {
                       <TaskCard 
                         key={task.id} 
                         task={task} 
+                        // Menggunakan fungsi wrapper untuk memastikan tipe data cocok
                         onUpdate={isReadOnly ? undefined : (id, status) => updateStatus(id, status)} 
                         onDelete={isReadOnly ? undefined : (id) => deleteTask(id)} 
                       />
