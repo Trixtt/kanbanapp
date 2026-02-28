@@ -5,27 +5,24 @@ import { TaskCard } from '@/components/shared/TaskCard';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Status } from '@/types';
 import { Globe, Lock, Eye, Copy, Check } from 'lucide-react';
-import { useState, useEffect } from 'react'; // Tambahkan useEffect di sini
+import { useState, useEffect } from 'react';
 
 export default function SharePage() {
-  // Ambil fetchTasks dari context untuk memicu pengambilan data publik
   const { tasks, isLoading, updateStatus, deleteTask, fetchTasks } = useTaskContext();
-  const params = useParams();
+  const params = useParams(); // Mengambil [id] dari folder [id]
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
   
   const mode = searchParams.get('mode') || 'view';
   const isReadOnly = mode === 'view';
 
-  // --- LANGKAH PENTING ---
-  // Memanggil data secara publik saat halaman share dibuka
+  // --- LOGIKA UTAMA: Ambil data berdasarkan ID di URL ---
   useEffect(() => {
-    if (fetchTasks) {
-      fetchTasks(true); // Flag 'true' menandakan ini adalah Shared Page
+    if (params.id) {
+      fetchTasks(true, params.id as string);
     }
-  }, []); 
+  }, [params.id]); 
 
-  // Fungsi untuk menyalin link ke clipboard
   const copyToClipboard = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -48,7 +45,6 @@ export default function SharePage() {
 
   return (
     <div className="min-h-screen bg-[#fcfcfd] pb-20">
-      {/* Banner Notifikasi Mode */}
       <div className={`w-full py-2 px-4 text-center text-xs font-bold uppercase tracking-widest transition-colors duration-500 ${isReadOnly ? 'bg-amber-50 text-amber-700 border-b border-amber-100' : 'bg-blue-50 text-blue-700 border-b border-blue-100'}`}>
         <div className="flex items-center justify-center gap-2">
           {isReadOnly ? <Eye size={14} /> : <Lock size={14} />}
@@ -69,12 +65,11 @@ export default function SharePage() {
               Papan Tugas Bersama
             </h1>
             <p className="text-slate-500 mt-2 font-medium">
-              ID Papan: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">#{params.id}</span>
+              ID Pemilik: <span className="font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">@{params.id}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Tombol Copy Link */}
             <button 
               onClick={copyToClipboard}
               className="px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 active:scale-95"

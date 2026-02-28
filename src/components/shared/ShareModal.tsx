@@ -3,12 +3,12 @@
 import { useState } from 'react';
 
 export const ShareModal = ({ isOpen, onClose, boardId }: { isOpen: boolean; onClose: () => void; boardId: string }) => {
-  const [accessType, setAccessType] = useState('view-only');
+  // 1. Ubah default state agar cocok dengan sistem kita
+  const [accessType, setAccessType] = useState('view'); // 'view' atau 'edit'
   
-  // Menggunakan useEffect atau mengecek tipe window agar tidak error saat SSR
-  const shareLink = typeof window !== 'undefined' 
-    ? `${window.location.origin}/share/${boardId}` 
-    : '';
+  // 2. Tambahkan parameter ?mode= ke link-nya
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const shareLink = `${baseUrl}/share/${boardId}?mode=${accessType}`;
 
   if (!isOpen) return null;
 
@@ -34,10 +34,10 @@ export const ShareModal = ({ isOpen, onClose, boardId }: { isOpen: boolean; onCl
             <select 
               value={accessType}
               onChange={(e) => setAccessType(e.target.value)}
-              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all cursor-pointer"
+              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all cursor-pointer font-bold text-sm"
             >
-              <option value="view-only">Hanya Melihat (Viewer)</option>
-              <option value="can-edit">Bisa Mengedit (Editor)</option>
+              <option value="view">Hanya Melihat (Viewer)</option>
+              <option value="edit">Bisa Mengedit (Editor)</option>
             </select>
           </div>
 
@@ -50,20 +50,19 @@ export const ShareModal = ({ isOpen, onClose, boardId }: { isOpen: boolean; onCl
               <input 
                 readOnly 
                 value={shareLink}
-                className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 outline-none"
+                className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 outline-none font-mono overflow-ellipsis"
               />
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(shareLink);
                   alert("Link berhasil disalin!");
                 }}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-100 active:scale-95"
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-100 active:scale-95 whitespace-nowrap"
               >
                 Salin
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

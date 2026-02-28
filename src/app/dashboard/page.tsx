@@ -5,29 +5,27 @@ import { useTaskContext } from '@/lib/TaskContext';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { Status } from '@/types';
 import { ShareModal } from '@/components/shared/ShareModal';
-import { useUser, useClerk } from "@clerk/nextjs"; // Impor Clerk hooks
+import { useUser, useClerk } from "@clerk/nextjs";
 
 export default function Dashboard() {
   const { tasks, addTask, updateStatus, deleteTask } = useTaskContext();
   const [input, setInput] = useState('');
   
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const { isSignedIn, isLoaded } = useUser(); // Cek status login
-  const { openSignIn } = useClerk(); // Fungsi untuk memicu modal login
+  const { user, isSignedIn, isLoaded } = useUser(); // Ambil data 'user' di sini
+  const { openSignIn } = useClerk();
   
-  const boardId = "id-board-anda"; 
+  // PERBAIKAN: Gunakan ID user asli sebagai boardId
+  const boardId = user?.id || ""; 
 
-  // Fungsi baru untuk menangani klik tombol bagikan
   const handleShareClick = () => {
-    if (!isLoaded) return; // Tunggu Clerk siap
+    if (!isLoaded) return;
 
     if (!isSignedIn) {
-      // Jika belum login, buka modal login Clerk
       openSignIn({
-        afterSignInUrl: window.location.href, // Kembali ke sini setelah login
+        afterSignInUrl: window.location.href,
       });
     } else {
-      // Jika sudah login, buka modal share
       setIsShareOpen(true);
     }
   };
@@ -56,7 +54,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Update onClick untuk menggunakan fungsi handleShareClick */}
             <button 
               onClick={handleShareClick}
               className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
