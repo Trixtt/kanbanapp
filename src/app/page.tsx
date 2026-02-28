@@ -14,7 +14,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white ">
       <main className="flex flex-col items-center justify-center pt-20 pb-10 px-6 text-center">
         {/* Hero Section */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold mb-8 uppercase tracking-widest">
